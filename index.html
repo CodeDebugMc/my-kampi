@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Promise of Forever 💖</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap"
+    rel="stylesheet">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+            cursive: ['"Dancing Script"', 'cursive'],
+          },
+          colors: {
+            rose: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              300: '#fda4af',
+              400: '#fb7185',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+              800: '#9f1239',
+              900: '#881337',
+            }
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'spin-slow': 'spin 12s linear infinite',
+            'bloom': 'bloom 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+              '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+            },
+            bloom: {
+              '0%': { transform: 'scale(0.2) rotate(-10deg)', opacity: '0' },
+              '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom CSS Effects & Background Gradients */
+    body {
+      background: linear-gradient(135deg, #fff0f3 0%, #ffe3e8 40%, #ffd6df 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 40px rgba(225, 29, 72, 0.08);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Floating particles background canvas */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* SVG Rose Petal Path Animations */
+    .petal {
+      transform-origin: center bottom;
+      transition: all 1.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .rose-closed .petal-outer {
+      transform: scale(0.1) rotate(0deg);
+      opacity: 0;
+    }
+
+    .rose-closed .petal-mid {
+      transform: scale(0.2) rotate(0deg);
+      opacity: 0;
+    }
+
+    .rose-closed .petal-inner {
+      transform: scale(0.3);
+      opacity: 0.5;
+    }
+
+    .rose-open .petal-outer {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+
+    .rose-open .petal-mid {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+
+    .rose-open .petal-inner {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 241, 242, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #fda4af;
+      border-radius: 999px;
+    }
+
+    /* Shimmer effect for buttons */
+    .btn-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-shimmer::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(60deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.4) 50%,
+          transparent 70%);
+      transform: rotate(30deg);
+      animation: shimmer 4s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%) rotate(30deg);
+      }
+
+      100% {
+        transform: translateX(100%) rotate(30deg);
+      }
+    }
+  </style>
+</head>
+
+<body class="text-slate-800 antialiased font-sans relative">
+
+  <!-- Ambient Floating Heart/Petals Canvas Background -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Audio Toggle Control Floating Top Right -->
+  <div class="fixed top-5 right-5 z-50 flex items-center gap-2">
+    <button id="customize-btn" onclick="openCustomizerModal()"
+      class="p-3 glass-card rounded-full hover:bg-white transition-all shadow-md text-rose-600 hover:scale-105"
+      title="Customize Photos & Questions">
+      <i data-lucide="settings" class="w-5 h-5"></i>
+    </button>
+    <button id="audio-btn" onclick="toggleAudio()"
+      class="p-3 glass-card rounded-full hover:bg-white transition-all shadow-md text-rose-600 flex items-center justify-center hover:scale-105">
+      <i id="audio-icon" data-lucide="volume-x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
+
+    <!-- ================= SECTION 1: VERIFICATION LOCK SCREEN ================= -->
+    <section id="section-lock" class="w-full max-w-xl transition-all duration-700 transform scale-100 opacity-100">
+      <div class="glass-card rounded-3xl p-6 md:p-10 shadow-2xl text-center relative overflow-hidden">
+        <!-- Floating Heart Header -->
+        <div
+          class="w-20 h-20 mx-auto mb-4 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center shadow-inner animate-pulse-slow">
+          <i data-lucide="lock" class="w-9 h-9"></i>
+        </div>
+
+        <h1 class="font-serif text-3xl md:text-4xl font-bold text-rose-900 mb-2">Memory Verification</h1>
+        <p class="text-rose-700/80 text-sm md:text-base mb-8">
+          Before we unlock our 4-year timeline, verify these special moments only <span
+            class="font-semibold text-rose-900">you</span> would know.
+        </p>
+
+        <!-- Question 1 -->
+        <div id="q1-container" class="space-y-4 mb-8 text-left bg-white/60 p-5 rounded-2xl border border-rose-100">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold tracking-wider text-rose-500 uppercase">Question 1 of 2</span>
+            <button onclick="toggleHint('hint-1')"
+              class="text-xs text-rose-600 hover:underline flex items-center gap-1">
+              <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Need a Hint?
+            </button>
+          </div>
+          <label class="block text-base font-semibold text-slate-800" id="q1-label-text">
+            Where was our very first special date or hangout place?
+          </label>
+          <div id="hint-1" class="hidden text-xs text-slate-600 bg-rose-50/80 p-3 rounded-lg border border-rose-200">
+            💡 <span id="q1-hint-text">Near at the fountain</span>
+          </div>
+          <div class="relative">
+            <input type="text" id="q1-input" placeholder="Type your answer..."
+              class="w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white/90 text-slate-800 transition-all text-sm md:text-base">
+            <span id="q1-status" class="absolute right-3 top-3.5 hidden">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Question 2 (Reveals blurred image preview) -->
+        <div id="q2-container" class="space-y-4 mb-8 text-left bg-white/60 p-5 rounded-2xl border border-rose-100">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold tracking-wider text-rose-500 uppercase">Question 2 of 2</span>
+            <button onclick="toggleHint('hint-2')"
+              class="text-xs text-rose-600 hover:underline flex items-center gap-1">
+              <i data-lucide="image" class="w-3.5 h-3.5"></i> Photo Clue
+            </button>
+          </div>
+          <label class="block text-base font-semibold text-slate-800" id="q2-label-text">
+            What is our callsign?
+          </label>
+
+          <!-- Blurred Photo Clue -->
+          <div class="relative w-full h-36 rounded-xl overflow-hidden shadow-inner group border border-rose-200">
+            <img id="lock-thumbnail" src="images/2023.jpg" alt="Memory Hint"
+              class="w-full h-full object-cover blur-md scale-105 transition-all duration-700 group-hover:blur-sm">
+            <div id="photo-overlay"
+              class="absolute inset-0 bg-rose-900/30 flex items-center justify-center text-white text-xs font-medium backdrop-blur-xs">
+              <span class="bg-slate-900/60 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i> Answer correctly to unblur photo
+              </span>
+            </div>
+          </div>
+
+          <div id="hint-2" class="hidden text-xs text-slate-600 bg-rose-50/80 p-3 rounded-lg border border-rose-200">
+            💡 <span id="q2-hint-text">Enter the date or key word tied to our 4-year journey!</span>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="q2-input" placeholder="Type your answer..."
+              class="w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white/90 text-slate-800 transition-all text-sm md:text-base">
+            <span id="q2-status" class="absolute right-3 top-3.5 hidden">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
+            </span>
+          </div>
+        </div>
+
+        <p id="error-msg" class="text-rose-600 text-xs md:text-sm font-medium mb-4 hidden animate-bounce"></p>
+
+        <!-- Submit Button -->
+        <button onclick="verifyAnswers()"
+          class="w-full py-4 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-semibold rounded-2xl shadow-lg shadow-rose-500/30 transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 btn-shimmer">
+          <span>Unlock Our Memories</span>
+          <i data-lucide="key-round" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 2 & 3: BLOOMING ROSE, CAROUSEL & PROPOSAL ================= -->
+    <section id="section-proposal"
+      class="hidden w-full max-w-3xl transition-all duration-1000 transform scale-95 opacity-0">
+
+      <!-- Blooming SVG Rose Hero Card -->
+      <div class="glass-card rounded-3xl p-6 md:p-10 shadow-2xl text-center relative mb-8 overflow-hidden">
+
+        <!-- Rose Canvas / SVG Animation -->
+        <div class="w-48 h-48 md:w-64 md:h-64 mx-auto relative flex items-center justify-center my-2">
+          <svg id="svg-rose" class="w-full h-full rose-closed" viewBox="0 0 200 200" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <!-- Stem and Leaves -->
+            <path d="M100 120 Q95 160 100 190" stroke="#15803d" stroke-width="6" stroke-linecap="round" />
+            <path d="M98 150 Q70 140 60 155 Q80 165 98 155" fill="#16a34a" />
+            <path d="M102 165 Q130 155 140 170 Q120 180 102 170" fill="#15803d" />
+
+            <!-- Outer Petals -->
+            <path class="petal petal-outer" d="M100 50 C60 20 40 80 100 125 C160 80 140 20 100 50 Z"
+              fill="url(#rose-grad-1)" />
+            <path class="petal petal-outer" d="M100 50 C50 40 50 110 100 125 C150 110 150 40 100 50 Z"
+              fill="url(#rose-grad-2)" transform="rotate(30 100 85)" />
+            <path class="petal petal-outer" d="M100 50 C50 40 50 110 100 125 C150 110 150 40 100 50 Z"
+              fill="url(#rose-grad-2)" transform="rotate(-30 100 85)" />
+
+            <!-- Middle Petals -->
+            <path class="petal petal-mid" d="M100 60 C70 40 60 95 100 120 C140 95 130 40 100 60 Z" fill="#f43f5e" />
+            <path class="petal petal-mid" d="M100 60 C70 40 60 95 100 120 C140 95 130 40 100 60 Z" fill="#fb7185"
+              transform="rotate(45 100 85)" />
+
+            <!-- Inner Bud -->
+            <path class="petal petal-inner" d="M100 70 C85 55 80 90 100 110 C120 90 115 55 100 70 Z" fill="#be123c" />
+            <circle cx="100" cy="82" r="10" fill="#e11d48" />
+
+            <!-- Gradients -->
+            <defs>
+              <linearGradient id="rose-grad-1" x1="100" y1="20" x2="100" y2="125" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#fda4af" />
+                <stop offset="0.5" stop-color="#f43f5e" />
+                <stop offset="1" stop-color="#be123c" />
+              </linearGradient>
+              <linearGradient id="rose-grad-2" x1="100" y1="20" x2="100" y2="125" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#fb7185" />
+                <stop offset="1" stop-color="#9f1239" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <span
+          class="inline-block px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold tracking-widest uppercase mb-3">
+          4 Years of Waiting & Devotion
+        </span>
+        <h2 class="font-serif text-3xl md:text-5xl font-bold text-rose-950 mb-4 leading-tight">
+          You Unlocked My Heart
+        </h2>
+
+        <!-- Interactive Memory Photo Slideshow / Carousel -->
+        <div class="relative max-w-lg mx-auto my-8 group">
+          <div class="overflow-hidden rounded-2xl shadow-xl aspect-4/3 bg-slate-100 border-4 border-white relative">
+            <img id="carousel-img" src="images/2023.jpg" alt="Our Memory"
+              class="w-full h-full object-cover transition-all duration-700">
+            <div
+              class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4 text-white text-left">
+              <p id="carousel-caption" class="text-sm md:text-base font-medium drop-shadow"></p>
+            </div>
+          </div>
+
+          <!-- Navigation buttons -->
+          <button onclick="prevSlide()"
+            class="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass-card hover:bg-white text-rose-700 transition shadow-md">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <button onclick="nextSlide()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass-card hover:bg-white text-rose-700 transition shadow-md">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Dots Indicator -->
+          <div id="carousel-dots" class="flex justify-center gap-1.5 mt-3"></div>
+        </div>
+
+        <!-- Heartfelt Love Letter -->
+        <div class="text-left bg-white/80 rounded-2xl p-6 md:p-8 border border-rose-100 space-y-4 mb-8 shadow-sm">
+          <h3 class="font-cursive text-3xl text-rose-600 font-bold">My Malago,</h3>
+          <p id="letter-text" class="text-slate-700 leading-relaxed text-sm md:text-base font-normal">
+            Ang bilis ng panahon, hindi natin namamalayan. Akalain mo, nakayanan natin sa kabila ng marami nating
+            hinarap
+            na problema. Gusto ko magpasalamat sa Lord dahil pinakilala ka niya sa akin. Dahil sa iyo nagkaroon ng kulay
+            ang buhay ko. Ley, alam ko marami pa tayong pagdadaanan sa buhay pero makakayanan natin ito. Dahil ikaw ang
+            kampi ko. Salamat sa buhay mo. Lagi mong tandaan na mahal na mahal kita.
+          </p>
+          <p class="text-slate-700 leading-relaxed text-sm md:text-base font-normal">
+            Handa ka bang harapin ang problema ng buhay nang magkasama? Kasi, ayaw ko tumanda na hindi ikaw ang kasama.
+          </p>
+          <p class="font-cursive text-2xl text-rose-700 text-right font-bold pt-2">
+            Forever yours ❤️
+          </p>
+        </div>
+
+        <!-- THE BIG QUESTION -->
+        <div id="proposal-box"
+          class="pt-4 border-t border-rose-200/60 relative min-h-[160px] flex flex-col items-center justify-center">
+          <h3 class="font-serif text-2xl md:text-4xl font-bold text-rose-900 mb-6">
+            Will you make me the happiest person and officially be my girlfriend?
+          </h3>
+
+          <!-- Action Buttons Area -->
+          <div class="flex flex-wrap items-center justify-center gap-4 w-full relative min-h-[60px]"
+            id="button-wrapper">
+            <!-- YES BUTTON -->
+            <button id="yes-btn" onclick="handleYesClick()"
+              class="px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-lg rounded-2xl shadow-xl shadow-rose-500/30 transition-all duration-300 transform hover:scale-110 active:scale-95 btn-shimmer z-20 flex items-center gap-2">
+              <span>YES, I WILL! 💖</span>
+            </button>
+
+            <!-- NO BUTTON (Dances away playfully) -->
+            <button id="no-btn" onmouseover="moveNoButton()" onclick="moveNoButton()"
+              class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm rounded-xl transition-all duration-200 z-10">
+              No 🙈
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 4: PERMANENT ANNIVERSARY DASHBOARD ================= -->
+    <section id="section-anniversary"
+      class="hidden w-full max-w-2xl transition-all duration-1000 transform scale-95 opacity-0">
+      <div class="glass-card rounded-3xl p-6 md:p-10 shadow-2xl text-center relative overflow-hidden">
+
+        <div
+          class="w-24 h-24 mx-auto mb-4 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-rose-500/40 animate-bounce">
+          <i data-lucide="heart" class="w-12 h-12 fill-current"></i>
+        </div>
+
+        <span
+          class="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold tracking-widest uppercase">
+          Official & Sealed Forever 🎉
+        </span>
+
+        <h2 class="font-serif text-3xl md:text-5xl font-bold text-rose-950 mt-3 mb-2">
+          She Said YES! 💍✨
+        </h2>
+        <p class="text-rose-700 text-sm md:text-base mb-8">
+          Our courtship has officially bloomed into our forever story.
+        </p>
+
+        <!-- Live Together Counter Box -->
+        <div class="bg-gradient-to-br from-rose-500 to-rose-700 text-white rounded-2xl p-6 shadow-xl mb-8">
+          <p class="text-xs font-semibold tracking-wider uppercase text-rose-200 mb-2">Together In Love For</p>
+          <div class="grid grid-cols-4 gap-2 text-center" id="counter-grid">
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <span id="count-days" class="block text-2xl md:text-4xl font-extrabold">0</span>
+              <span class="text-[10px] md:text-xs text-rose-200 uppercase">Days</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <span id="count-hours" class="block text-2xl md:text-4xl font-extrabold">0</span>
+              <span class="text-[10px] md:text-xs text-rose-200 uppercase">Hours</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <span id="count-mins" class="block text-2xl md:text-4xl font-extrabold">0</span>
+              <span class="text-[10px] md:text-xs text-rose-200 uppercase">Mins</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <span id="count-secs" class="block text-2xl md:text-4xl font-extrabold">0</span>
+              <span class="text-[10px] md:text-xs text-rose-200 uppercase">Secs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Message Box -->
+        <div
+          class="bg-white/90 rounded-2xl p-6 text-slate-700 border border-rose-100 text-sm md:text-base space-y-3 shadow-sm mb-6">
+          <p class="font-semibold text-rose-900">
+            "Every love story is beautiful, but ours is my absolute favorite."
+          </p>
+          <p class="text-xs text-slate-500">
+            This site is saved forever on your browser. Come back anytime you want to revisit our blooming rose and
+            special timeline!
+          </p>
+        </div>
+
+        <button onclick="triggerConfettiBurst()"
+          class="px-6 py-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2 mx-auto">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Replay Heart Burst
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL: CUSTOMIZER FOR PHOTOS & QUESTIONS ================= -->
+  <div id="customizer-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div
+      class="glass-dark text-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl relative border border-white/20">
+
+      <button onclick="closeCustomizerModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-6">
+        <i data-lucide="sliders" class="w-6 h-6 text-rose-400"></i>
+        <h3 class="text-xl font-bold font-serif">Customize Your Proposal</h3>
+      </div>
+
+      <div class="space-y-6 text-left text-xs md:text-sm">
+
+        <!-- Answers Setup -->
+        <div class="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-semibold text-rose-300 text-sm">1. Verification Answers & Hints</h4>
+          <div>
+            <label class="block text-slate-300 mb-1">Q1 Answer (Lowercase match)</label>
+            <input type="text" id="cust-a1"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white focus:outline-none focus:border-rose-400">
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">Q2 Answer (Lowercase match)</label>
+            <input type="text" id="cust-a2"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white focus:outline-none focus:border-rose-400">
+          </div>
+        </div>
+
+        <!-- Photos Management -->
+        <div class="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-semibold text-rose-300 text-sm">2. Photo Gallery & Thumbnail</h4>
+          <p class="text-slate-400 text-xs">Enter image URLs or base64 links for your couple photos:</p>
+
+          <div>
+            <label class="block text-slate-300 mb-1">Lock Screen Thumbnail URL</label>
+            <input type="text" id="cust-thumb-url"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white focus:outline-none focus:border-rose-400">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">Photo 1 URL & Caption</label>
+            <input type="text" id="cust-p1-url" placeholder="Image URL"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white mb-2">
+            <input type="text" id="cust-p1-cap" placeholder="Caption"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">Photo 2 URL & Caption</label>
+            <input type="text" id="cust-p2-url" placeholder="Image URL"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white mb-2">
+            <input type="text" id="cust-p2-cap" placeholder="Caption"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">Photo 3 URL & Caption</label>
+            <input type="text" id="cust-p3-url" placeholder="Image URL"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white mb-2">
+            <input type="text" id="cust-p3-cap" placeholder="Caption"
+              class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 text-white">
+          </div>
+        </div>
+
+        <!-- Reset State Button -->
+        <div class="pt-2 flex justify-between items-center">
+          <button onclick="resetSavedData()" class="text-rose-400 hover:underline text-xs flex items-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Saved Progress
+          </button>
+
+          <button onclick="saveCustomizations()"
+            class="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 font-bold text-white rounded-xl shadow-lg transition">
+            Save Changes
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ================= DEFAULT CONFIGURATION & DATA ================= */
+    const DEFAULT_CONFIG = {
+      q1Answer: "mcdomoriones",
+      q2Answer: "malago",
+      lockThumb: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80",
+      photos: [
+        {
+          url: "images/2023.jpg",
+          caption: "Year 1: Baby, you're my angel, angel baby 🌸"
+        },
+        {
+          url: "images/2024.jpg",
+          caption: "Year 2: PUP with you ✨"
+        },
+        {
+          url: "images/2025.jpg",
+          caption: "Year 3: Hinulugan Taktak w/ Maroon Shirt ❤️"
+        },
+        {
+          url: "images/2026.jpeg",
+          caption: "Year 4: Graduation's Day ❤️"
+        }
+      ],
+      relationshipStartDate: null
+    };
+
+    let config = { ...DEFAULT_CONFIG };
+    let currentSlide = 0;
+    let audioContext = null;
+    let isAudioPlaying = false;
+    let audioOscillator = null;
+
+    /* ================= INITIALIZATION ================= */
+    window.onload = function () {
+      lucide.createIcons();
+      initParticlesCanvas();
+      loadStoredData();
+      checkSavedState();
+    };
+
+    function loadStoredData() {
+      const stored = localStorage.getItem('proposal_custom_cfg');
+      if (stored) {
+        try {
+          config = JSON.parse(stored);
+        } catch (e) { console.error(e); }
+      }
+      // Apply thumbnail
+      const thumbEl = document.getElementById('lock-thumbnail');
+      if (thumbEl) thumbEl.src = config.lockThumb;
+    }
+
+    function checkSavedState() {
+      const answeredYes = localStorage.getItem('proposal_said_yes');
+      const verified = localStorage.getItem('proposal_verified');
+
+      if (answeredYes === 'true') {
+        // Jump directly to permanent anniversary screen
+        showSection('section-anniversary');
+        startTimer();
+        triggerConfettiBurst();
+      } else if (verified === 'true') {
+        // Jump directly to unlocked proposal screen
+        showSection('section-proposal');
+        bloomRose();
+        renderCarousel();
+      } else {
+        showSection('section-lock');
+      }
+    }
+
+    function showSection(id) {
+      ['section-lock', 'section-proposal', 'section-anniversary'].forEach(s => {
+        const el = document.getElementById(s);
+        if (s === id) {
+          el.classList.remove('hidden');
+          setTimeout(() => {
+            el.classList.remove('scale-95', 'opacity-0');
+            el.classList.add('scale-100', 'opacity-100');
+          }, 50);
+        } else {
+          el.classList.add('hidden', 'scale-95', 'opacity-0');
+          el.classList.remove('scale-100', 'opacity-100');
+        }
+      });
+    }
+
+    /* ================= SECTION 1: VERIFICATION LOGIC ================= */
+    function toggleHint(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('hidden');
+    }
+
+    function verifyAnswers() {
+      const ans1 = document.getElementById('q1-input').value.trim().toLowerCase();
+      const ans2 = document.getElementById('q2-input').value.trim().toLowerCase();
+      const errorEl = document.getElementById('error-msg');
+
+      const expected1 = config.q1Answer.toLowerCase();
+      const expected2 = config.q2Answer.toLowerCase();
+
+      let valid1 = ans1.includes(expected1) || expected1.includes(ans1);
+      let valid2 = ans2.includes(expected2) || expected2.includes(ans2);
+
+      // Show instant checkmark icons if partially correct
+      if (valid1 && ans1 !== '') document.getElementById('q1-status').classList.remove('hidden');
+      if (valid2 && ans2 !== '') {
+        document.getElementById('q2-status').classList.remove('hidden');
+        document.getElementById('lock-thumbnail').classList.remove('blur-md');
+        document.getElementById('photo-overlay').classList.add('hidden');
+      }
+
+      if (valid1 && valid2) {
+        errorEl.classList.add('hidden');
+        localStorage.setItem('proposal_verified', 'true');
+
+        // Transition to Proposal Screen
+        setTimeout(() => {
+          showSection('section-proposal');
+          bloomRose();
+          renderCarousel();
+          playAmbientMelody();
+        }, 600);
+      } else {
+        errorEl.textContent = "Oops! Those answers don't quite match our memories. Try using the hints! 💕";
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    /* ================= SECTION 2: BLOOMING ROSE & CAROUSEL ================= */
+    function bloomRose() {
+      const rose = document.getElementById('svg-rose');
+      rose.classList.remove('rose-closed');
+      rose.classList.add('rose-open');
+    }
+
+    function renderCarousel() {
+      if (!config.photos || config.photos.length === 0) return;
+      const img = document.getElementById('carousel-img');
+      const cap = document.getElementById('carousel-caption');
+      const dots = document.getElementById('carousel-dots');
+
+      img.src = config.photos[currentSlide].url;
+      cap.textContent = config.photos[currentSlide].caption;
+
+      dots.innerHTML = config.photos.map((_, i) => `
+        <button onclick="goToSlide(${i})" class="w-2.5 h-2.5 rounded-full transition-all ${i === currentSlide ? 'bg-rose-600 w-6' : 'bg-rose-200'}"></button>
+      `).join('');
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + config.photos.length) % config.photos.length;
+      renderCarousel();
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % config.photos.length;
+      renderCarousel();
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      renderCarousel();
+    }
+
+    /* ================= PLAYFUL "NO" BUTTON LOGIC ================= */
+    function moveNoButton() {
+      const btn = document.getElementById('no-btn');
+      const container = document.getElementById('proposal-box');
+      const rect = container.getBoundingClientRect();
+
+      // Random position within container limits
+      const maxX = rect.width - btn.offsetWidth - 20;
+      const maxY = rect.height - btn.offsetHeight - 20;
+
+      const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+      const randomY = Math.max(10, Math.floor(Math.random() * maxY));
+
+      btn.style.position = 'absolute';
+      btn.style.left = `${randomX}px`;
+      btn.style.top = `${randomY}px`;
+    }
+
+    /* ================= YES BUTTON & PERMANENT SAVING ================= */
+    function handleYesClick() {
+      // Save Yes choice and start date timestamp
+      localStorage.setItem('proposal_said_yes', 'true');
+      if (!localStorage.setItem('proposal_start_date', Date.now())) {
+        localStorage.setItem('proposal_start_date', Date.now());
+      }
+
+      triggerConfettiBurst();
+
+      setTimeout(() => {
+        showSection('section-anniversary');
+        startTimer();
+      }, 800);
+    }
+
+    /* ================= CONFETTI PARTICLES BURST ================= */
+    function triggerConfettiBurst() {
+      if (typeof confetti === 'function') {
+        const count = 200;
+        const defaults = { origin: { y: 0.7 } };
+
+        function fire(particleRatio, opts) {
+          confetti(Object.assign({}, defaults, opts, {
+            particleCount: Math.floor(count * particleRatio)
+          }));
+        }
+
+        fire(0.25, { spread: 26, startVelocity: 55, colors: ['#f43f5e', '#fb7185'] });
+        fire(0.2, { spread: 60, colors: ['#ffffff', '#fda4af'] });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, colors: ['#be123c', '#ffe4e6'] });
+        fire(0.1, { spread: 120, startVelocity: 45 });
+      }
+    }
+
+    /* ================= TOGETHER TIMER (DAYS/HOURS/MINS) ================= */
+    let timerInterval = null;
+    function startTimer() {
+      let startTime = localStorage.getItem('proposal_start_date');
+      if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem('proposal_start_date', startTime);
+      }
+
+      function update() {
+        const now = Date.now();
+        const diff = Math.max(0, now - parseInt(startTime));
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        document.getElementById('count-days').textContent = days;
+        document.getElementById('count-hours').textContent = hours;
+        document.getElementById('count-mins').textContent = mins;
+        document.getElementById('count-secs').textContent = secs;
+      }
+
+      update();
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(update, 1000);
+    }
+
+    /* ================= WEB AUDIO API SYNTHESIZER (ROMANTIC AMBIENT CHORDS) ================= */
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        stopAudio();
+      } else {
+        playAmbientMelody();
+      }
+    }
+
+    function playAmbientMelody() {
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+
+        isAudioPlaying = true;
+        document.getElementById('audio-icon').setAttribute('data-lucide', 'volume-2');
+        lucide.createIcons();
+
+        // Soft romantic chord notes (Hz)
+        const notes = [261.63, 329.63, 392.00, 523.25]; // C major soft ambient pad
+        const masterGain = audioContext.createGain();
+        masterGain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        masterGain.connect(audioContext.destination);
+
+        notes.forEach(freq => {
+          const osc = audioContext.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+
+          const oscGain = audioContext.createGain();
+          oscGain.gain.setValueAtTime(0.05, audioContext.currentTime);
+
+          osc.connect(oscGain);
+          oscGain.connect(masterGain);
+          osc.start();
+        });
+
+      } catch (e) {
+        console.log("Audio play blocked by browser policy until user click.");
+      }
+    }
+
+    function stopAudio() {
+      if (audioContext) {
+        audioContext.suspend();
+      }
+      isAudioPlaying = false;
+      document.getElementById('audio-icon').setAttribute('data-lucide', 'volume-x');
+      lucide.createIcons();
+    }
+
+    /* ================= BACKGROUND FLOATING PARTICLES CANVAS ================= */
+    function initParticlesCanvas() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const particles = Array.from({ length: 25 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 12 + 6,
+        speedY: Math.random() * 0.8 + 0.3,
+        speedX: Math.sin(Math.random() * Math.PI) * 0.5,
+        opacity: Math.random() * 0.5 + 0.3,
+        rotation: Math.random() * 360
+      }));
+
+      function drawHeart(x, y, size, opacity) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(244, 63, 94, ${opacity})`;
+        const d = size;
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(-d / 2, -d / 2, -d, d / 3, 0, d);
+        ctx.bezierCurveTo(d, d / 3, d / 2, -d / 2, 0, 0);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+          p.y -= p.speedY;
+          p.x += Math.sin(p.y * 0.01) * 0.4;
+
+          if (p.y < -20) {
+            p.y = height + 20;
+            p.x = Math.random() * width;
+          }
+
+          drawHeart(p.x, p.y, p.size, p.opacity);
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+
+    /* ================= CUSTOMIZER MODAL FUNCTIONS ================= */
+    function openCustomizerModal() {
+      document.getElementById('cust-a1').value = config.q1Answer;
+      document.getElementById('cust-a2').value = config.q2Answer;
+      document.getElementById('cust-thumb-url').value = config.lockThumb;
+
+      document.getElementById('cust-p1-url').value = config.photos[0]?.url || '';
+      document.getElementById('cust-p1-cap').value = config.photos[0]?.caption || '';
+      document.getElementById('cust-p2-url').value = config.photos[1]?.url || '';
+      document.getElementById('cust-p2-cap').value = config.photos[1]?.caption || '';
+      document.getElementById('cust-p3-url').value = config.photos[2]?.url || '';
+      document.getElementById('cust-p3-cap').value = config.photos[2]?.caption || '';
+
+      document.getElementById('customizer-modal').classList.remove('hidden');
+    }
+
+    function closeCustomizerModal() {
+      document.getElementById('customizer-modal').classList.add('hidden');
+    }
+
+    function saveCustomizations() {
+      config.q1Answer = document.getElementById('cust-a1').value || DEFAULT_CONFIG.q1Answer;
+      config.q2Answer = document.getElementById('cust-a2').value || DEFAULT_CONFIG.q2Answer;
+      config.lockThumb = document.getElementById('cust-thumb-url').value || DEFAULT_CONFIG.lockThumb;
+
+      config.photos = [
+        {
+          url: document.getElementById('cust-p1-url').value || DEFAULT_CONFIG.photos[0].url,
+          caption: document.getElementById('cust-p1-cap').value || DEFAULT_CONFIG.photos[0].caption
+        },
+        {
+          url: document.getElementById('cust-p2-url').value || DEFAULT_CONFIG.photos[1].url,
+          caption: document.getElementById('cust-p2-cap').value || DEFAULT_CONFIG.photos[1].caption
+        },
+        {
+          url: document.getElementById('cust-p3-url').value || DEFAULT_CONFIG.photos[2].url,
+          caption: document.getElementById('cust-p3-cap').value || DEFAULT_CONFIG.photos[2].caption
+        }
+      ];
+
+      localStorage.setItem('proposal_custom_cfg', JSON.stringify(config));
+      loadStoredData();
+      renderCarousel();
+      closeCustomizerModal();
+    }
+
+    function resetSavedData() {
+      if (confirm("Are you sure you want to reset answers and unlock status?")) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+  </script>
+</body>
+
+</html>
